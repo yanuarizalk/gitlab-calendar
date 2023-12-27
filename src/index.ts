@@ -34,6 +34,10 @@ export type GitlabCalendarOptions = {
 	utcOffset: number;
 	dayTitles: Record<ActivityCalendarWeekday, string>;
 	monthsAgo: number;
+	dateRange?: {
+		start: Date;
+		end: Date;
+	};
 	monthNames: string[];
 	inputFormat: string;
 	weekdayNames: string[];
@@ -102,11 +106,12 @@ export class GitlabCalendar {
 
 		this.svg = this.renderSvg(container, group);
 
+		this.renderStyle(container, group);
 		this.renderDays();
 		this.renderMonths();
 		this.renderDayTitles();
 		this.renderKey();
-		this.renderHint();
+		this.renderHint(group);
 		this.addTitles();
 	}
 
@@ -121,10 +126,16 @@ export class GitlabCalendar {
 
 		timeAgo.setMonth(today.getMonth() - this.options.monthsAgo);
 
-		const days = this.getDayDifference(timeAgo, today);
+		const dateOption = this.options.dateRange
+		const { start, end } = dateOption ?? {
+			start: timeAgo, 
+			end: today
+		};
+
+		const days = this.getDayDifference(start, end);
 
 		for (let i = 0; i <= days; i += 1) {
-			const date = new Date(timeAgo);
+			const date = new Date(start);
 
 			date.setDate(date.getDate() + i);
 
@@ -199,8 +210,25 @@ export class GitlabCalendar {
 
 	private renderSvg(container: HTMLElement, group: number): ActivityCalendarSVG {
 		const width = (group + 1) * this._daySizeWithSpace + this.getExtraWidthPadding(group);
-
-		return select(container).append('svg').attr('width', width).attr('height', 167);
+		
+		return select(container).append('svg').attr('width', width).attr('height', 172);
+	}
+	private renderStyle(container: HTMLElement, group: number) {
+		this.svg.attr("xmlns", "http://www.w3.org/2000/svg");
+		const viewWidth = (group + 1) * this._daySizeWithSpace + this.getExtraWidthPadding(group) + 20;
+		this.svg.attr("viewBox", `-10 -5 ${viewWidth} 176`);
+		var style = document.createElement('style');
+		style.appendChild(document.createTextNode(`
+		    g rect:hover {
+                stroke: gray;
+				cursor: pointer;
+            }
+			text {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+				font-size: 12px;
+				fill: #959494;
+			}`));
+		container.querySelector("svg")?.appendChild(style);
 	}
 
 	private dayYPos(day: number): number {
@@ -319,12 +347,14 @@ export class GitlabCalendar {
 			.attr('fill', (_, i) => this.getLevelLinear(i));
 	}
 
-	private renderHint(): void {
+	private renderHint(group: number): void {
+		const width = (group + 1) * this._daySizeWithSpace + this.getExtraWidthPadding(group);
+
 		this.svg
 			.append('g')
 			.attr(
 				'transform',
-				`translate(460, ${this._daySizeWithSpace * 8 + 29})`
+				`translate(${width}, ${this._daySizeWithSpace * 8 + 29})`
 			)
 			.append('text')
 			.attr('text-anchor', 'end')
