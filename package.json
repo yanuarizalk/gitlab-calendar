@@ -32,9 +32,10 @@
 		"release-major": "release-it major --ci",
 		"changelog-local": "npx auto-changelog"
 	},
-	"dependencies": {},
 	"devDependencies": {
+		"@types/d3-scale": "^4.0.8",
 		"@types/d3-selection": "3.0.10",
+		"d3-scale": "^4.0.2",
 		"d3-selection": "3.0.0",
 		"date-fns": "2.30.0",
 		"release-it": "17.0.1",

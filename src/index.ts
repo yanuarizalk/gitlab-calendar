@@ -1,5 +1,6 @@
 import format from 'date-fns/format';
 import { select, Selection } from 'd3-selection';
+import { scaleLinear } from 'd3-scale';
 
 export type ActivityCalendarSVG = Selection<SVGSVGElement, unknown, null, undefined>;
 
@@ -181,6 +182,8 @@ export class GitlabCalendar {
 		return nextLevel >= 0 ? nextLevel - 1 : this.options.legendValues.length - 1;
 	};
 
+	private getLevelLinear = scaleLinear(["#ededed", "#acd5f2", "#7fa8c9", "#527ba0", "#254e77"]).domain([0, 1, 2, 3, 4]);
+
 	private getExtraWidthPadding(group: number): number {
 		let extraWidthPadding = 0;
 
@@ -237,7 +240,8 @@ export class GitlabCalendar {
 			.attr('width', this.options.daySize)
 			.attr('height', this.options.daySize)
 			.attr('data-level', (stamp: ActivityCalendarGroup) => this.getLevelFromContributions(stamp.count))
-			.attr('title', (stamp: ActivityCalendarGroup) => this.formatTooltipText(stamp));
+			.attr('title', (stamp: ActivityCalendarGroup) => this.formatTooltipText(stamp))
+			.attr('fill', (stamp: ActivityCalendarGroup) => this.getLevelLinear(this.getLevelFromContributions(stamp.count)));
 	}
 
 	private renderDayTitles(): void {
@@ -311,7 +315,8 @@ export class GitlabCalendar {
 			.attr('x', (_, i) => this._daySizeWithSpace * i)
 			.attr('y', 0)
 			.attr('data-level', (_, i) => i)
-			.attr('title', x => x.title);
+			.attr('title', x => x.title)
+			.attr('fill', (_, i) => this.getLevelLinear(i));
 	}
 
 	private renderHint(): void {
@@ -319,7 +324,7 @@ export class GitlabCalendar {
 			.append('g')
 			.attr(
 				'transform',
-				`translate(${this.svg.property('width').baseVal.value}, ${this._daySizeWithSpace * 8 + 25})`
+				`translate(460, ${this._daySizeWithSpace * 8 + 29})`
 			)
 			.append('text')
 			.attr('text-anchor', 'end')
